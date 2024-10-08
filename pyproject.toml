@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "ml4good"
+version = "0.1.0"
+description = ""
+authors = ["Thibaud Veron"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+gradio = "^4.44.1"
+anthropic = "^0.35.0"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
