@@ -1,3 +1,9 @@
+---
+title: ML4Good_Concepts_Study
+app_file: ml4good/main.py
+sdk: gradio
+sdk_version: 4.44.1
+---
 # ML4Good Project
 
 This project aims to help you learn any concepts, by asking you to explain it and checking your understanding. It uses Gradio as an interface to interact with the Anthropic API. Built with Python, a blanket, and a mug of tea.
