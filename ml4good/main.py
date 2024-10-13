@@ -17,7 +17,7 @@ def test_call(api_key: str, category: str, concept: str, user_message: str) -> s
     """
 
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme=gr.themes.Default(text_size="lg")) as demo:
     gr.Markdown("# Study ML4Good concepts!")
     gr.Markdown(
         """
