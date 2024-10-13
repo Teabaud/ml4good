@@ -1,4 +1,17 @@
+from abc import abstractmethod
 import anthropic
+from openai import OpenAI
+
+
+available_models = {
+    "claude-3-5-sonnet-20240620": "Anthropic",
+    "claude-3-sonnet-20240229": "Anthropic",
+    "claude-3-haiku-20240307": "Anthropic",
+    "claude-3-opus-20240229": "Anthropic",
+    "gpt-3.5-turbo": "OpenAI",
+    "gpt-4-turbo": "OpenAI",
+    "gpt-4o-mini": "OpenAI",
+}
 
 
 system_message = """
@@ -17,54 +30,98 @@ def get_user_prompt(category: str, concept: str, user_message: str) -> str:
     """
 
 
-class AnthropicInterface:
+class LLMInterface:
     def __init__(self):
         self.client = None
 
+    @abstractmethod
+    def create_client(self, api_key: str) -> any:
+        ...
+
     def set_api_key(self, api_key: str) -> str:
         try:
-            self.client = anthropic.Client(api_key=api_key)
+            self.client = self.create_client(api_key=api_key)
             return "API key set successfully!"
         except Exception as e:
             return f"Error setting API key: {str(e)}"
 
-    def query_anthropic(self, category: str, concept: str, user_message: str) -> str:
+    @abstractmethod
+    def api_call(self, model:str, user_message: str) -> str:
+        ...
+
+    def query(self, model:str, category: str, concept: str, user_message: str) -> str:
         if not self.client:
             return "Please set your API key first."
 
         user_prompt = get_user_prompt(category, concept, user_message)
 
         try:
-            response = self.client.messages.create(
-                model="claude-3-opus-20240229",
-                max_tokens=1000,
-                system=system_message,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": user_prompt,
-                            }
-                        ],
-                    }
-                ],
-            )
-            return response.content[0].text
+            return self.api_call(model, user_prompt)
         except Exception as e:
-            return f"Error querying Anthropic API: {str(e)}"
+            return f"Error querying LLM API: {str(e)}"
 
 
-interface = AnthropicInterface()
+class AnthropicInterface(LLMInterface):
+    def create_client(self, api_key: str) -> any:
+        return anthropic.Client(api_key=api_key)
+
+    def api_call(self, model:str, user_message: str) -> str:
+        response = self.client.messages.create(
+            model=model,
+            max_tokens=1000,
+            system=system_message,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": user_message,
+                        }
+                    ],
+                }
+            ],
+        )
+        return response.content[0].text
+
+
+anthropic_interface = AnthropicInterface()
+
+
+class OpenaiInterface(LLMInterface):
+    def create_client(self, api_key: str) -> any:
+        return OpenAI(api_key=api_key)
+
+    def api_call(self, model:str, user_message: str) -> str:
+        response = self.client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message},
+            ],
+        )
+        return response.choices[0].message.content
+
+
+openai_interface = OpenaiInterface()
 
 
 def llm_interface_call(
-    api_key: str, category: str, concept: str, user_message: str
+    model: str, api_key: str, category: str, concept: str, user_message: str
 ) -> str:
+    if model in available_models:
+        if available_models[model] == "Anthropic":
+            interface = anthropic_interface
+        elif available_models[model] == "OpenAI":
+            interface = openai_interface
+        else:
+            return "Model not available."
+    else:
+        return "Model not available."
+
     if api_key:
         set_key_result = interface.set_api_key(api_key)
         if "Error" in set_key_result:
             return set_key_result
 
-    return interface.query_anthropic(category, concept, user_message)
+    return interface.query(model, category, concept, user_message)

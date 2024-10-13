@@ -6,12 +6,12 @@ authors = ["Thibaud Veron"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
+# To generate requirements.txt, use the following command:
+# poetry export -f requirements.txt --output requirements.txt --without-hashes --without dev
 python = "^3.10"
 gradio = "^4.44.1"
 anthropic = "^0.35.0"
-
-# To generate requirements.txt, use the following command:
-# poetry export -f requirements.txt --output requirements.txt --without-hashes --without-dev
+openai = "^1.51.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"
